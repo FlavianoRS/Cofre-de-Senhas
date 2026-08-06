@@ -1,0 +1,45 @@
+# Dependencies and package-manager state
+node_modules/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Expo and generated bundles
+.expo/
+dist/
+web-build/
+
+# Native build artifacts and local machine configuration
+android/.gradle/
+android/.idea/
+android/.cxx/
+android/build/
+android/app/build/
+android/local.properties
+ios/Pods/
+ios/build/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+credentials.json
+android/keystore.properties
+keystore.properties
+
+# Editors, operating systems and logs
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Test output
+coverage/
