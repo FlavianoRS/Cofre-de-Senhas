@@ -46,6 +46,7 @@ const CreatePasswordScreen: React.FC = () => {
   const keyboardScreenRef = React.useRef<KeyboardScreenHandle>(null);
   const { addPassword } = usePasswords();
   const [description, setDescription] = useState('');
+  const [login, setLogin] = useState('');
   const [passwordLength, setPasswordLength] = useState('16');
   const [entryMode, setEntryMode] = useState<PasswordEntryMode>('manual');
   const [generationMode, setGenerationMode] = useState<GenerationMode>('random');
@@ -95,6 +96,7 @@ const CreatePasswordScreen: React.FC = () => {
     try {
       await addPassword({
         description: description.trim(),
+        login: login.trim(),
         password: credentialPassword,
       });
       navigation.goBack();
@@ -124,6 +126,18 @@ const CreatePasswordScreen: React.FC = () => {
           mode="outlined"
           style={styles.input}
           left={<TextInput.Icon icon="text-box-outline" />}
+          returnKeyType="next"
+        />
+        <TextInput
+          label="Login (opcional)"
+          placeholder="Ex.: usuario@email.com"
+          value={login}
+          onChangeText={setLogin}
+          mode="outlined"
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[styles.input, styles.spacedInput]}
+          left={<TextInput.Icon icon="account-outline" />}
           returnKeyType="next"
         />
       </SectionCard>
@@ -273,6 +287,7 @@ const styles = StyleSheet.create({
   fieldLabel: { color: colors.textMuted, marginBottom: 9 },
   segmented: { marginBottom: 18 },
   input: { backgroundColor: colors.backgroundSoft },
+  spacedInput: { marginTop: 12 },
   optionRow: {
     flexDirection: 'row', alignItems: 'center', paddingVertical: 13,
     borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border,

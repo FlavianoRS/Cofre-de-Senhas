@@ -5,6 +5,7 @@
 export interface Password {
   id: string;
   description: string;
+  login: string;
   password: string;
 }
 
