@@ -7,6 +7,7 @@ const LEGACY_DATABASE_NAME = 'password_manager.db';
 type PasswordRow = {
   id: string;
   description: string;
+  login: string | null;
   password: string;
 };
 export type VaultAccess = {
@@ -42,6 +43,14 @@ const getDatabase = async (userId: string): Promise<SQLite.SQLiteDatabase> => {
       updated_at INTEGER NOT NULL
     );
   `);
+
+  const columns = await database.getAllAsync<{ name: string }>(
+    'PRAGMA table_info(passwords)'
+  );
+  if (!columns.some(column => column.name === 'login')) {
+    await database.execAsync('ALTER TABLE passwords ADD COLUMN login TEXT;');
+  }
+
   databases.set(userId, database);
   return database;
 };
@@ -95,13 +104,14 @@ export const listPasswords = async (
   await migrateLegacyPasswords(access);
   const database = await getDatabase(access.userId);
   const rows = await database.getAllAsync<PasswordRow>(
-    'SELECT id, description, password FROM passwords'
+    'SELECT id, description, login, password FROM passwords'
   );
 
   return rows
     .map(row => ({
       id: row.id,
       description: decryptText(row.description, access.key),
+      login: row.login ? decryptText(row.login, access.key) : '',
       password: decryptText(row.password, access.key),
     }))
     .sort((first, second) =>
@@ -124,10 +134,11 @@ export const insertPassword = async (
 
   await database.runAsync(
     `INSERT INTO passwords
-      (id, description, password, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?)`,
+      (id, description, login, password, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
     newPassword.id,
     encryptText(newPassword.description, access.key),
+    encryptText(newPassword.login, access.key),
     encryptText(newPassword.password, access.key),
     now,
     now
@@ -148,6 +159,11 @@ export const updateStoredPassword = async (
   if (updatedPassword.description !== undefined) {
     fields.push('description = ?');
     values.push(encryptText(updatedPassword.description, access.key));
+  }
+
+  if (updatedPassword.login !== undefined) {
+    fields.push('login = ?');
+    values.push(encryptText(updatedPassword.login, access.key));
   }
 
   if (updatedPassword.password !== undefined) {

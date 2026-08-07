@@ -29,6 +29,7 @@ const ViewPasswordScreen: React.FC = () => {
   const route = useRoute<PasswordRoute>();
   const { getPasswordById, updatePassword } = usePasswords();
   const passwordData = getPasswordById(route.params.passwordId);
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,16 +37,19 @@ const ViewPasswordScreen: React.FC = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (passwordData) setPassword(passwordData.password);
+    if (passwordData) {
+      setLogin(passwordData.login);
+      setPassword(passwordData.password);
+    }
   }, [passwordData]);
 
-  const handleCopy = async () => {
+  const handleCopy = async (value: string, itemName: string, successMessage: string) => {
     try {
-      await Clipboard.setStringAsync(password);
-      setMessage('Senha copiada.');
+      await Clipboard.setStringAsync(value);
+      setMessage(successMessage);
     } catch (err) {
-      console.error('Erro ao copiar senha:', err);
-      setError('Não foi possível copiar a senha.');
+      console.error(`Erro ao copiar ${itemName}:`, err);
+      setError(`Não foi possível copiar ${itemName}.`);
     }
   };
 
@@ -58,7 +62,10 @@ const ViewPasswordScreen: React.FC = () => {
 
     setSaving(true);
     try {
-      await updatePassword(route.params.passwordId, { password: password.trim() });
+      await updatePassword(route.params.passwordId, {
+        login: login.trim(),
+        password: password.trim(),
+      });
       setMessage('Alterações protegidas no cofre.');
     } catch (err) {
       console.error('Erro ao atualizar senha:', err);
@@ -100,6 +107,26 @@ const ViewPasswordScreen: React.FC = () => {
         </View>
       </Surface>
 
+      <Surface style={styles.loginCard} elevation={1}>
+        <Text variant="titleMedium" style={styles.cardTitle}>Dados de acesso</Text>
+        <TextInput
+          label="Login (opcional)"
+          value={login}
+          onChangeText={setLogin}
+          mode="outlined"
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={styles.loginInput}
+          left={<TextInput.Icon icon="account-outline" />}
+          right={login ? (
+            <TextInput.Icon
+              icon="content-copy"
+              onPress={() => handleCopy(login, 'o login', 'Login copiado.')}
+            />
+          ) : undefined}
+        />
+      </Surface>
+
       <Surface style={styles.passwordCard} elevation={2}>
         <View style={styles.cardHeader}>
           <View>
@@ -130,7 +157,12 @@ const ViewPasswordScreen: React.FC = () => {
           autoCorrect={false}
           style={styles.passwordInput}
           contentStyle={styles.passwordInputContent}
-          right={<TextInput.Icon icon="content-copy" onPress={handleCopy} />}
+          right={
+            <TextInput.Icon
+              icon="content-copy"
+              onPress={() => handleCopy(password, 'a senha', 'Senha copiada.')}
+            />
+          }
         />
 
         <View style={styles.passwordMeta}>
@@ -147,7 +179,7 @@ const ViewPasswordScreen: React.FC = () => {
         <Button
           mode="contained"
           icon="content-copy"
-          onPress={handleCopy}
+          onPress={() => handleCopy(password, 'a senha', 'Senha copiada.')}
           style={styles.copyButton}
           contentStyle={styles.buttonContent}
           buttonColor={colors.accent}
@@ -175,7 +207,7 @@ const ViewPasswordScreen: React.FC = () => {
         icon="content-save-outline"
         onPress={handleSave}
         loading={saving}
-        disabled={saving || password === passwordData.password}
+        disabled={saving || (password === passwordData.password && login === passwordData.login)}
         style={styles.saveButton}
         contentStyle={styles.buttonContent}
       >
@@ -206,6 +238,11 @@ const styles = StyleSheet.create({
     width: 34, height: 34, borderRadius: 12, backgroundColor: '#10332B',
     alignItems: 'center', justifyContent: 'center',
   },
+  loginCard: {
+    backgroundColor: colors.surface, borderRadius: radius.large,
+    borderWidth: 1, borderColor: colors.border, padding: 18, marginBottom: 14,
+  },
+  loginInput: { backgroundColor: colors.backgroundSoft, marginTop: 14 },
   passwordCard: {
     backgroundColor: colors.surface, borderRadius: radius.large,
     borderWidth: 1, borderColor: colors.border, padding: 18, marginBottom: 14,

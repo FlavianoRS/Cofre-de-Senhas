@@ -94,7 +94,7 @@ const PasswordItem: React.FC<{
               {item.description || 'Sem descrição'}
             </Text>
             <Text variant="bodySmall" style={styles.itemSubtitle}>
-              {'•'.repeat(Math.min(item.password.length, 14))} · {item.password.length} caracteres
+              {item.login || `${'•'.repeat(Math.min(item.password.length, 14))} · ${item.password.length} caracteres`}
             </Text>
           </View>
           <View style={[styles.chevron, selected && styles.selectedIndicator]}>
